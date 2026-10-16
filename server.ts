@@ -9,6 +9,16 @@ async function startServer() {
   const app = express();
   const PORT = process.env.PORT || 3000;
 
+  // Route /api/health to the health check handler
+  app.get('/api/health', async (req, res) => {
+    try {
+      const { default: handler } = await import('./api/health.ts');
+      await handler(req, res);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message || 'Health check error' });
+    }
+  });
+
   // Route any /api/* request to the OneMap API handler
   app.all('/api/*', async (req, res) => {
     try {
@@ -33,8 +43,9 @@ async function startServer() {
     app.use(vite.middlewares);
   }
 
-  app.listen(Number(PORT), '0.0.0.0', () => {
-    console.log(`Server listening on port ${PORT}`);
+  const port = Number(PORT) || 3000;
+  app.listen(port, '0.0.0.0', () => {
+    console.log(`Server listening on http://0.0.0.0:${port}`);
   });
 }
 
